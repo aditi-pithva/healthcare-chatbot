@@ -1,0 +1,73 @@
+To deploy your Rasa backend and Angular frontend from the Azure Portal (console), follow these steps:
+
+1. Deploy Rasa Backend
+
+	Step 1: Create an Azure Container Registry (ACR)
+		-> Go to the Azure Portal.
+		-> Search for Container Registries and click Create.
+		-> Fill in the required details:
+		-> Subscription: Select your subscription.
+		-> Resource Group: Create or select an existing one.
+		-> Registry Name: Provide a unique name for your registry (e.g., rasaacr).
+		-> Region: Select the closest location.
+		-> SKU: Use Basic for cost-effectiveness.
+		-> Click Review + Create and then Create.
+
+	Step 2: Push Docker Image to ACR
+		Build a Docker image locally for your Rasa backend:
+			-> docker build -t chatbot-backend .
+			-> az acr login --name mentalhealthchatbotregistry
+			-> docker tag chatbot-backend mentalhealthchatbotregistry.azurecr.io/chatbot-backend:latest
+			-> docker push mentalhealthchatbotregistry.azurecr.io/chatbot-backend:latest
+
+	Step 3: Deploy Rasa Backend to Azure
+		-> Go to the Azure Portal.
+		-> Search for Container Instances and click Create.
+		-> Fill in the required details:
+			-> -> Subscription: Select your subscription.
+			-> Resource Group: Select the same as above.
+			-> Container Name: rasa-backend.
+			-> Image Source: Choose Azure Container Registry.
+			-> Image: Select the rasa-backend:latest image from your ACR.
+			-> Port: Expose port 5005.
+			-> Restart Policy: Select Always.
+		-> Enable public access by providing a DNS Name Label = mh-chatbot-backend.
+		-> Click Review + Create and then Create.
+
+	-> Your Rasa backend will now be available at:
+	-> http://<dns-name-label>.<region>.azurecontainer.io:5005
+
+2. Deploy Angular Frontend
+	Step 1: Build the Angular App
+		-> Build your Angular project locally:
+			-> ng build --configuration production
+		-> This will create a dist/ folder with the production files.
+
+	Step 2: Deploy to Azure App Service
+		-> Go to the Azure Portal.
+		-> Search for App Services and click Create.
+		-> Fill in the required details:
+			-> Subscription: Select your subscription.
+			-> Resource Group: Select the same as above.
+			-> Name: Provide a unique name for your frontend app (e.g., rasa-frontend).
+			-> Publish: Select Code.
+			-> Runtime Stack: Choose Node.js 16 LTS.
+			-> Region: Select the same region as above.
+			-> Click Review + Create and then Create.
+
+	Step 3: Deploy Angular App
+		-> After the App Service is created, go to the App Service.
+		-> Under Deployment, click Deployment Center.
+		-> Select FTP as the deployment option.
+		-> Use the provided FTP credentials to upload your dist/ folder using an FTP client (e.g., FileZilla).
+
+	Step 4: Update the Angular API URL
+		-> Ensure the environment.prod.ts file in your Angular project has the correct API URL for your deployed Rasa backend:
+
+		-> typescript
+		export const environment = {
+		  production: true,
+		  rasaApiUrl: 'http://<dns-name-label>.<region>.azurecontainer.io:5005/webhooks/rest/webhook'
+		};
+		-> Rebuild the Angular app (ng build --configuration production) and redeploy.
+
