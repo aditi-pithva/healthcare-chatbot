@@ -1,0 +1,25 @@
+<div class="chat-container">
+  <div class="chat-messages">
+    <div *ngFor="let message of messages" [ngClass]="message.sender">
+      <div class="message-content">
+        <span class="message-avatar">
+          <img *ngIf="message.sender === 'bot'" src="assets/bot-avatar.png" alt="Bot">
+          <img *ngIf="message.sender === 'user'" src="assets/user-avatar.png" alt="User">
+        </span>
+        <div class="message-text">
+          <span>{{ message.text }}</span>
+        </div>
+      </div>
+      <div class="message-timestamp">{{ message.timestamp | date:'shortTime' }}</div>
+    </div>
+  </div>
+  <div class="chat-input">
+    <input
+      type="text"
+      [(ngModel)]="userInput"
+      placeholder="Type a message..."
+      (keyup.enter)="sendMessage()"
+    />
+    <button (click)="sendMessage()">Send</button>
+  </div>
+</div>
