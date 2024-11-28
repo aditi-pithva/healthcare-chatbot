@@ -1,3 +1,4 @@
 venv
 node-modules
 .rasa
+azure-credentials.txt
